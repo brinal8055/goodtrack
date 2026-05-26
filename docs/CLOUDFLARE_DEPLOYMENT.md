@@ -26,10 +26,19 @@ npm run typecheck
 npm run build
 ```
 
+Cloudflare Workers packaging is now configured:
+
+```bash
+npm run cf:build
+npm run preview
+npm run deploy
+```
+
 Important production constraint:
 
 - Current persistence is `.data/textiletrack.json`.
 - That is fine for local demos, but it is not a durable production data layer on Cloudflare.
+- On Cloudflare Workers, the app falls back to in-memory seeded demo data if file writes are unavailable. This keeps the demo online, but data may reset between Worker instances/restarts.
 - Before client production use on Cloudflare, move persistence to a database.
 
 ## Recommended Cloudflare Architecture
@@ -52,7 +61,8 @@ Important production constraint:
    - Repository: `brinal8055/goodtrack`
    - Branch: `main`
 6. Configure build/deploy after OpenNext setup is added:
-   - Build command: `npm run deploy` for direct deploy, or the Workers Builds command configured after adding OpenNext.
+   - Build command: `npm run build`
+   - Deploy command: `npm run deploy`
    - Environment variables: add production session/database secrets.
 7. Add a D1 database binding after the data layer migration:
    - Suggested binding name: `DB`
@@ -111,6 +121,34 @@ Do not choose Pages with the static Next.js preset for this current app.
 Pages static export expects a static build output such as `out`. TextileTrack needs server runtime behavior for login, role checks, server actions, billing/payment writes, reports, CSV routes, and alerts. A static export would remove or break those workflows.
 
 Pages can still be useful later only if we build a separate read-only marketing or demo site.
+
+## Build Log Fix: Missing Deploy Script
+
+If Cloudflare fails with:
+
+```text
+npm error Missing script: "deploy"
+```
+
+it means the Cloudflare project has **Deploy command** set to `npm run deploy`, but the GitHub revision being built did not contain the OpenNext deployment scripts yet.
+
+This repo now includes:
+
+- `deploy`: builds the OpenNext Worker bundle and deploys it.
+- `preview`: builds and serves the Worker locally through Wrangler.
+- `cf:build`: builds only the OpenNext Worker bundle.
+- `open-next.config.ts`: Cloudflare OpenNext adapter config.
+- `wrangler.jsonc`: Workers deploy config.
+
+After pushing this commit, trigger a new Cloudflare deployment from `main`.
+
+Verification performed after this fix:
+
+- `npm run lint`: passed
+- `npm run typecheck`: passed
+- `npm run cf:build`: passed
+- Workers preview `/login`: HTTP 200
+- Workers preview authenticated `/dashboard`: HTTP 200
 
 ## Production Migration Checklist
 

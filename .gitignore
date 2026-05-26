@@ -1,6 +1,8 @@
 .data
 .env*.local
 .next
+.open-next
+.wrangler
 node_modules
 npm-debug.log*
 out

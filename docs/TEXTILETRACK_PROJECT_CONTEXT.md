@@ -262,7 +262,7 @@ Success criteria:
 - `.data/textiletrack.json` may contain local smoke-test records such as `LOT-1029`, `Phase Two Textiles`, and `Phase Two Template`.
 - `npm audit` could not be run because registry access would send dependency metadata externally and was blocked by policy.
 - Next.js dev overlay may show stale chunk errors if `next build` runs while `next dev` is still running. Stop and restart the dev server after production builds.
-- Local JSON persistence is suitable for development only. PostgreSQL/Prisma remains a production hardening step.
+- Local JSON persistence is suitable for development only. On Cloudflare Workers, the app uses in-memory seeded demo data if file writes are unavailable; D1 remains the production hardening step.
 
 ## Verification Commands
 
