@@ -58,6 +58,52 @@ Important production constraint:
    - Suggested binding name: `DB`
    - Suggested database name: `goodtrack-prod`
 
+## Copy-Paste Fields
+
+### GitHub About Panel
+
+On GitHub, open `brinal8055/goodtrack`, click the gear icon near **About**, and use:
+
+Description:
+
+```text
+TextileTrack: role-based textile goods tracking from material inward through godown, processing, dispatch, billing, reports, and alerts. Built with Next.js for a Cloudflare Workers + D1 production path.
+```
+
+Website:
+
+```text
+Add the Cloudflare Workers or custom-domain URL after first deploy.
+```
+
+Topics:
+
+```text
+nextjs, react, typescript, textile, production-tracking, cloudflare-workers, d1
+```
+
+### Cloudflare Project
+
+Use these values when creating the Cloudflare project:
+
+| Field | Value |
+| --- | --- |
+| Product | Workers |
+| Project name | `goodtrack` |
+| GitHub repository | `brinal8055/goodtrack` |
+| Production branch | `main` |
+| Runtime path | Workers with OpenNext adapter |
+| Database binding after migration | `DB` |
+| D1 database name after migration | `goodtrack-prod` |
+
+### Client Demo Description
+
+Use this short description when sharing with the client:
+
+```text
+TextileTrack is a role-based factory control dashboard for tracking textile goods from material inward through godown, dyeing/processing, dispatch, billing, reports, and alerts.
+```
+
 ## Why Not Pages Right Now
 
 Do not choose Pages with the static Next.js preset for this current app.
