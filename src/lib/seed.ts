@@ -1,5 +1,12 @@
-import { hashPassword } from "@/lib/security";
 import type { TextileTrackData } from "@/lib/types";
+
+const demoPasswordHashes = {
+  admin: "pbkdf2$120000$textiletrack-admin-demo$1c4241ceb34d2c845ff5824661830a9f8533c4ed9cdcc8b571b8f6c436237aa9",
+  entry: "pbkdf2$120000$textiletrack-entry-demo$d967e3fb484bd70d1f6801cfb95cd7b8f387c4b3109088c83e303dcd58d424bb",
+  godown: "pbkdf2$120000$textiletrack-godown-demo$3361f5cf15053bc042e364a53b154b2c778f231bcda0d66b8fb6c9ec79875c60",
+  process: "pbkdf2$120000$textiletrack-process-demo$ffb91b71dc15691675954533575306addda55c0085ceee7a1305db8f65f616f1",
+  billing: "pbkdf2$120000$textiletrack-billing-demo$3c2356d49db4123709ed76adb2e3e0911dbd68f0540fd24fe9dce6044a0f7cc5"
+};
 
 function isoDaysAgo(days: number, hour = 9, minute = 30) {
   const date = new Date();
@@ -15,12 +22,6 @@ function isoHoursAgo(hours: number) {
 }
 
 export function createSeedData(): TextileTrackData {
-  const adminHash = hashPassword("password123", "textiletrack-admin-demo");
-  const entryHash = hashPassword("password123", "textiletrack-entry-demo");
-  const godownHash = hashPassword("password123", "textiletrack-godown-demo");
-  const processHash = hashPassword("password123", "textiletrack-process-demo");
-  const billingHash = hashPassword("password123", "textiletrack-billing-demo");
-
   return {
     settings: {
       companyName: "TextileTrack Factory",
@@ -38,7 +39,7 @@ export function createSeedData(): TextileTrackData {
         id: "user-admin",
         name: "Aarav Owner",
         email: "admin@textiletrack.test",
-        passwordHash: adminHash,
+        passwordHash: demoPasswordHashes.admin,
         role: "ADMIN",
         isActive: true,
         lastLogin: isoHoursAgo(2),
@@ -48,7 +49,7 @@ export function createSeedData(): TextileTrackData {
         id: "user-entry",
         name: "Nisha Entry",
         email: "entry@textiletrack.test",
-        passwordHash: entryHash,
+        passwordHash: demoPasswordHashes.entry,
         role: "ENTRY_OPERATOR",
         isActive: true,
         lastLogin: isoDaysAgo(1),
@@ -58,7 +59,7 @@ export function createSeedData(): TextileTrackData {
         id: "user-godown",
         name: "Manoj Godown",
         email: "godown@textiletrack.test",
-        passwordHash: godownHash,
+        passwordHash: demoPasswordHashes.godown,
         role: "GODOWN",
         isActive: true,
         lastLogin: isoHoursAgo(5),
@@ -68,7 +69,7 @@ export function createSeedData(): TextileTrackData {
         id: "user-process",
         name: "Ravi Dyeing",
         email: "process@textiletrack.test",
-        passwordHash: processHash,
+        passwordHash: demoPasswordHashes.process,
         role: "PROCESSING",
         isActive: true,
         lastLogin: isoHoursAgo(1),
@@ -78,7 +79,7 @@ export function createSeedData(): TextileTrackData {
         id: "user-billing",
         name: "Meera Billing",
         email: "billing@textiletrack.test",
-        passwordHash: billingHash,
+        passwordHash: demoPasswordHashes.billing,
         role: "BILLING",
         isActive: true,
         lastLogin: isoDaysAgo(2),

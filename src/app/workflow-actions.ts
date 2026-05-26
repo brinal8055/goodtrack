@@ -457,11 +457,12 @@ export async function updateSettingsAction(formData: FormData) {
 
 export async function addUserAction(formData: FormData) {
   const user = await requireRoles(["ADMIN"]);
+  const password = requireString(formData, "password");
+  const passwordHash = await hashPassword(password);
 
   await writeStore((draft) => {
     const name = requireString(formData, "name");
     const email = requireString(formData, "email").toLowerCase();
-    const password = requireString(formData, "password");
     const role = requireRole(formData, "role");
 
     if (draft.users.some((item) => item.email.toLowerCase() === email)) {
@@ -476,7 +477,7 @@ export async function addUserAction(formData: FormData) {
       id,
       name,
       email,
-      passwordHash: hashPassword(password),
+      passwordHash,
       role,
       isActive: true,
       createdAt: now
@@ -491,6 +492,8 @@ export async function addUserAction(formData: FormData) {
 export async function updateUserAction(formData: FormData) {
   const user = await requireRoles(["ADMIN"]);
   const userId = requireString(formData, "userId");
+  const resetPassword = optionalString(formData, "resetPassword");
+  const resetPasswordHash = resetPassword ? await hashPassword(resetPassword) : null;
 
   await writeStore((draft) => {
     const existing = draft.users.find((item) => item.id === userId);
@@ -515,8 +518,7 @@ export async function updateUserAction(formData: FormData) {
     existing.role = nextRole;
     existing.isActive = isActive;
 
-    const resetPassword = optionalString(formData, "resetPassword");
-    if (resetPassword) existing.passwordHash = hashPassword(resetPassword);
+    if (resetPasswordHash) existing.passwordHash = resetPasswordHash;
 
     recordActivity(draft, user, `updated user ${existing.name}`, "USER", existing.id);
   });

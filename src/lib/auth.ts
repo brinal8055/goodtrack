@@ -1,5 +1,3 @@
-import crypto from "node:crypto";
-
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -18,32 +16,58 @@ interface SessionPayload {
   exp: number;
 }
 
-function base64Url(input: Buffer | string) {
-  return Buffer.from(input).toString("base64url");
+function base64Url(input: Uint8Array | string) {
+  const bytes = typeof input === "string" ? new TextEncoder().encode(input) : input;
+  const binary = Array.from(bytes, (byte) => String.fromCharCode(byte)).join("");
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
-function signPayload(payload: SessionPayload) {
+function base64UrlToBytes(value: string) {
+  const padded = value.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(value.length / 4) * 4, "=");
+  return Uint8Array.from(atob(padded), (char) => char.charCodeAt(0));
+}
+
+function base64UrlToText(value: string) {
+  return new TextDecoder().decode(base64UrlToBytes(value));
+}
+
+function constantTimeEqual(left: Uint8Array, right: Uint8Array) {
+  if (left.length !== right.length) return false;
+
+  let diff = 0;
+  for (let index = 0; index < left.length; index += 1) {
+    diff |= left[index] ^ right[index];
+  }
+  return diff === 0;
+}
+
+async function hmacSha256(input: string) {
+  const key = await globalThis.crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(AUTH_SECRET),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  return new Uint8Array(await globalThis.crypto.subtle.sign("HMAC", key, new TextEncoder().encode(input)));
+}
+
+async function signPayload(payload: SessionPayload) {
   const body = base64Url(JSON.stringify(payload));
-  const signature = crypto.createHmac("sha256", AUTH_SECRET).update(body).digest("base64url");
+  const signature = base64Url(await hmacSha256(body));
   return `${body}.${signature}`;
 }
 
-export function verifySessionToken(token?: string): SessionPayload | null {
+export async function verifySessionToken(token?: string): Promise<SessionPayload | null> {
   if (!token) return null;
   const [body, signature] = token.split(".");
   if (!body || !signature) return null;
 
-  const expected = crypto.createHmac("sha256", AUTH_SECRET).update(body).digest("base64url");
-  const expectedBuffer = Buffer.from(expected);
-  const signatureBuffer = Buffer.from(signature);
-  if (
-    expectedBuffer.length !== signatureBuffer.length ||
-    !crypto.timingSafeEqual(expectedBuffer, signatureBuffer)
-  ) {
-    return null;
-  }
+  const expectedBytes = await hmacSha256(body);
+  const signatureBytes = base64UrlToBytes(signature);
+  if (!constantTimeEqual(expectedBytes, signatureBytes)) return null;
 
-  const payload = JSON.parse(Buffer.from(body, "base64url").toString("utf8")) as SessionPayload;
+  const payload = JSON.parse(base64UrlToText(body)) as SessionPayload;
   return payload.exp > Math.floor(Date.now() / 1000) ? payload : null;
 }
 
@@ -53,7 +77,7 @@ export async function authenticateUser(email: string, password: string) {
     (candidate) => candidate.email.toLowerCase() === email.trim().toLowerCase() && candidate.isActive
   );
 
-  if (!user || !verifyPassword(password, user.passwordHash)) return null;
+  if (!user || !(await verifyPassword(password, user.passwordHash))) return null;
 
   await writeStore((draft) => {
     const storedUser = draft.users.find((candidate) => candidate.id === user.id);
@@ -65,7 +89,7 @@ export async function authenticateUser(email: string, password: string) {
 
 export async function createSession(user: User) {
   const cookieStore = await cookies();
-  const token = signPayload({
+  const token = await signPayload({
     userId: user.id,
     role: user.role,
     exp: Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS
