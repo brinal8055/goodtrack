@@ -4,9 +4,10 @@ import type { TextileTrackData } from "@/lib/types";
 
 const STORE_DIR = ".data";
 const STORE_FILE = `${STORE_DIR}/textiletrack.json`;
+const SHOULD_USE_FILE_STORE = process.env.TEXTILETRACK_ENABLE_FILE_STORE === "true" || process.env.NODE_ENV !== "production";
 
 let cachedData: TextileTrackData | null = null;
-let canPersistToFile = true;
+let canPersistToFile = SHOULD_USE_FILE_STORE;
 
 async function getFileSystem() {
   if (!canPersistToFile) return null;
