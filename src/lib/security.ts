@@ -1,4 +1,3 @@
-const ITERATIONS = 120_000;
 const KEY_LENGTH = 32;
 const DIGEST = "SHA-256";
 
@@ -39,17 +38,30 @@ async function pbkdf2(password: string, salt: string, iterations: number) {
   return new Uint8Array(bits);
 }
 
+async function saltedSha256(password: string, salt: string) {
+  return new Uint8Array(await globalThis.crypto.subtle.digest(DIGEST, new TextEncoder().encode(`${salt}:${password}`)));
+}
+
 export async function hashPassword(password: string, salt = bytesToHex(globalThis.crypto.getRandomValues(new Uint8Array(16)))) {
-  const hash = bytesToHex(await pbkdf2(password, salt, ITERATIONS));
-  return `pbkdf2$${ITERATIONS}$${salt}$${hash}`;
+  const hash = bytesToHex(await saltedSha256(password, salt));
+  return `sha256$${salt}$${hash}`;
 }
 
 export async function verifyPassword(password: string, storedHash: string) {
-  const [scheme, iterationsText, salt, originalHash] = storedHash.split("$");
-  if (scheme !== "pbkdf2" || !iterationsText || !salt || !originalHash) return false;
+  const [scheme, first, second, third] = storedHash.split("$");
 
-  const iterations = Number(iterationsText);
-  const candidate = await pbkdf2(password, salt, iterations);
-  const original = hexToBytes(originalHash);
-  return constantTimeEqual(original, candidate);
+  if (scheme === "sha256" && first && second) {
+    const candidate = await saltedSha256(password, first);
+    return constantTimeEqual(hexToBytes(second), candidate);
+  }
+
+  if (scheme !== "pbkdf2" || !first || !second || !third) return false;
+
+  try {
+    const iterations = Number(first);
+    const candidate = await pbkdf2(password, second, iterations);
+    return constantTimeEqual(hexToBytes(third), candidate);
+  } catch {
+    return false;
+  }
 }

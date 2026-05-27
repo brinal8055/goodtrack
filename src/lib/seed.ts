@@ -1,11 +1,11 @@
 import type { TextileTrackData } from "@/lib/types";
 
 const demoPasswordHashes = {
-  admin: "pbkdf2$120000$textiletrack-admin-demo$1c4241ceb34d2c845ff5824661830a9f8533c4ed9cdcc8b571b8f6c436237aa9",
-  entry: "pbkdf2$120000$textiletrack-entry-demo$d967e3fb484bd70d1f6801cfb95cd7b8f387c4b3109088c83e303dcd58d424bb",
-  godown: "pbkdf2$120000$textiletrack-godown-demo$3361f5cf15053bc042e364a53b154b2c778f231bcda0d66b8fb6c9ec79875c60",
-  process: "pbkdf2$120000$textiletrack-process-demo$ffb91b71dc15691675954533575306addda55c0085ceee7a1305db8f65f616f1",
-  billing: "pbkdf2$120000$textiletrack-billing-demo$3c2356d49db4123709ed76adb2e3e0911dbd68f0540fd24fe9dce6044a0f7cc5"
+  admin: "sha256$textiletrack-admin-demo$39a092951ab3d5dbb3da2fabaea55080c5f3608818fccf329a9b7dd91d584794",
+  entry: "sha256$textiletrack-entry-demo$302570aeb308274d52a6b2dfd44857da508c171bf2751bd694b3d9b5116b6e8b",
+  godown: "sha256$textiletrack-godown-demo$82ec45f605ed489596cfac19596a30694191323cb1b0eaa02c89377a20b42364",
+  process: "sha256$textiletrack-process-demo$906144b23366b35abb814de0cdbf01b5fc4f1f886ed7dc63d08a8a1e69a1dac1",
+  billing: "sha256$textiletrack-billing-demo$30f746c504ff9ff216c5d44de1a123f4be4258d3a3bea97341c09181f86ca29f"
 };
 
 function isoDaysAgo(days: number, hour = 9, minute = 30) {
