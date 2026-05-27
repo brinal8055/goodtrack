@@ -5,8 +5,6 @@ import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { toast } from "sonner";
 
-import { loginAction } from "@/app/login/actions";
-
 export function LoginForm() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
@@ -17,7 +15,7 @@ export function LoginForm() {
   }, [error]);
 
   return (
-    <form action={loginAction} className="login-form">
+    <form action="/api/login" method="post" className="login-form">
       <input type="hidden" name="next" value={next} />
       {error === "invalid" ? <div className="login-error">Invalid email or password.</div> : null}
       <div className="field">

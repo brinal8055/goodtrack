@@ -58,6 +58,16 @@ async function signPayload(payload: SessionPayload) {
   return `${body}.${signature}`;
 }
 
+export function sessionCookieOptions() {
+  return {
+    httpOnly: true,
+    sameSite: "lax" as const,
+    secure: process.env.NODE_ENV === "production",
+    maxAge: SESSION_TTL_SECONDS,
+    path: "/"
+  };
+}
+
 export async function verifySessionToken(token?: string): Promise<SessionPayload | null> {
   if (!token) return null;
   const [body, signature] = token.split(".");
@@ -87,21 +97,17 @@ export async function authenticateUser(email: string, password: string) {
   return user;
 }
 
-export async function createSession(user: User) {
-  const cookieStore = await cookies();
-  const token = await signPayload({
+export async function createSessionToken(user: User) {
+  return signPayload({
     userId: user.id,
     role: user.role,
     exp: Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS
   });
+}
 
-  cookieStore.set(SESSION_COOKIE, token, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    maxAge: SESSION_TTL_SECONDS,
-    path: "/"
-  });
+export async function createSession(user: User) {
+  const cookieStore = await cookies();
+  cookieStore.set(SESSION_COOKIE, await createSessionToken(user), sessionCookieOptions());
 }
 
 export async function clearSession() {
